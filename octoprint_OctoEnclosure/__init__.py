@@ -40,24 +40,29 @@ class OctoenclosurePlugin(octoprint.plugin.StartupPlugin,
 
 	def on_print_progress(self, storage, path, progress):
 		self._logger.info("OctoEnclosure print progress: %s)" % progress)
+		self.execute_request("keepAlive")
 
 	def on_event(self, event, payload):
 		if event == octoprint.events.Events.PRINT_STARTED:
 			self._logger.info("print started  %s)" % event)
+			self.execute_request("ledOn?r=1023&g=1023&b=1023")
+			self.execute_request("fanOn")
 		elif event == octoprint.events.Events.PRINT_DONE:
 			self._logger.info("print done %s)" % event)
+			self.execute_request("ledOn?r=200&g=1023&b=200")
 		elif event in [octoprint.events.Events.CONNECTED,
 					   octoprint.events.Events.DISCONNECTED,
 					   octoprint.events.Events.PRINT_CANCELLED,
-					   octoprint.events.Events.PRINT_FAILED,
 					   octoprint.events.Events.PRINT_PAUSED,
-					   octoprint.events.Events.PRINT_RESUMED,
-					   octoprint.events.Events.ERROR]:
+					   octoprint.events.Events.PRINT_RESUMED]:
 			self._logger.info("event action needed %s" % event)
+			self.execute_request("ledOn?r=800&g=800&b=800")
+		elif event in [octoprint.events.Events.PRINT_FAILED,
+					   octoprint.events.Events.ERROR]:
+			self._logger.info("event error %s" % event)
+			self.execute_request("ledOn?r=1023&g=200&b=200")
 		else:
 			self._logger.info("event received %s" % event)
-
-		self.execute_request("")
 
 	def execute_request(self, path):
 		url = ""
